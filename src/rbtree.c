@@ -210,9 +210,8 @@ node_t *rbtree_insert(rbtree *t, const int key)
   new_node->left = t->nil;
   new_node->right = t->nil;
   rbtree_insert_fixup(t, new_node);
-  printTree(t, t->root, 0, 0);
-  return new_node;
   // printTree(t, t->root, 0, 0);
+  return new_node;
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key)
@@ -274,10 +273,6 @@ node_t *rbtree_min(const rbtree *t)
 
 void rb_transplant(rbtree *t, node_t *u, node_t *v)
 {
-  if (u == NULL || v == NULL)
-  {
-    return;
-  }
   if (u->parent == t->nil)
   {
     t->root = v;
@@ -400,19 +395,44 @@ int rbtree_erase(rbtree *t, node_t *z)
     y->left = z->left;
     y->left->parent = y;
     y->color = z->color;
-
-    if (y_original_color == RBTREE_BLACK)
-    {
-      rbtree_delete_fixup(t, x);
-    }
   }
+  if (y_original_color == RBTREE_BLACK)
+  {
+    rbtree_delete_fixup(t, x);
+  }
+  t->nil->parent = NULL;
+  t->nil->right = NULL;
+  t->nil->left = NULL;
+  t->nil->color = RBTREE_BLACK;
   free(z);
-
   return 0;
 }
 
+// 전위순회 하면서 arr에 값 집어넣기
+void preOrder(node_t *root, node_t *nil, key_t *arr, int *index)
+{
+  // 현재 노드가 빈 노드(nil)이면 함수 종료
+  if (root == nil)
+  {
+    return;
+  }
+  preOrder(root->left, nil, arr, index);
+  
+  // 현재 노드의 키 값을 배열에 넣고, 인덱스 증가
+  arr[(*index)++] = root->key;
+
+  // 위의 코드는 값을 할당한 후 인덱스를 증가시키지만, 아래의 코드는 현재 인덱스 다음 위치에 할당을 함
+  // arr[(*index) + 1] = root->key;
+  preOrder(root->right, nil, arr, index);
+}
+
+// 레드-블랙 트리의 모든 노드를 배열에 넣는 함수
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n)
 {
-  // TODO: implement to_array
+  // 배열에 넣을 인덱스를 가리키는 포인터 동적 할당
+  int *index = calloc(1, sizeof(*index));
+  // 레드-블랙 트리의 루트에서부터 전위순회하여 배열에 값 넣기
+  preOrder(t->root, t->nil, arr, index);
+  free(index);
   return 0;
 }
